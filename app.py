@@ -8,6 +8,13 @@ from qdrant_client.models import PointStruct
 
 env = dotenv_values('.env')
 
+if 'OPENAI_API_KEY' in st.secrets:
+    env['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
+if 'QDRANT_URL' in st.secrets:
+    env['QDRANT_URL'] = st.secrets['QDRANT_URL']
+if 'QDRANT_API_KEY' in st.secrets:
+    env['QDRANT_API_KEY'] = st.secrets['QDRANT_API_KEY']
+
 qdrant_client = QdrantClient(
     url=env["QDRANT_URL"],
     api_key=env["QDRANT_API_KEY"]
