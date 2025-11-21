@@ -2,10 +2,8 @@ import streamlit as st
 from openai import OpenAI
 from dotenv import dotenv_values
 from audiorecorder import audiorecorder
-from pydub import AudioSegment
-import pandas as pd
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct, VectorParams, Distance
+from qdrant_client.models import PointStruct
 
 ### VARIABLES ###
 
