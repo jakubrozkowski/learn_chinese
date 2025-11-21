@@ -296,7 +296,7 @@ with add_tab:
 
         st.title('Chinese Translator')
 
-        st.text_input('Enter your text in Polish:', key='translation_input', on_change=translation_changed)
+        st.text_input('Enter your text in English:', key='translation_input', on_change=translation_changed)
 
         if st.session_state['translation_input']:
             st.markdown('#### Translation:')
@@ -380,7 +380,7 @@ with add_tab:
     if st.session_state['language'] == 'Español':
         st.title('Traductor de chino')
 
-        st.text_input('Escribe tu texto en polaco:', key='translation_input', on_change=translation_changed)
+        st.text_input('Escribe tu texto en español:', key='translation_input', on_change=translation_changed)
 
         if st.session_state['translation_input']:
             st.markdown('#### Traducción:')
