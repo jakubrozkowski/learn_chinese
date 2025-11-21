@@ -33,9 +33,26 @@ OPENAI_AUDIO_MODEL = 'gpt-4o-mini-tts'
 
 if "last_saved_translation" not in st.session_state:
     st.session_state["last_saved_translation"] = None
-
 if "last_saved_improve" not in st.session_state:
     st.session_state["last_saved_improve"] = None
+if 'translation_input' not in st.session_state:
+    st.session_state['translation_input'] = ''
+if 'translation_result' not in st.session_state:
+    st.session_state['translation_result'] = ''
+if 'translation_explanation' not in st.session_state:
+    st.session_state['translation_explanation'] = ''
+if 'translation_audio' not in st.session_state:
+    st.session_state['translation_audio'] = ''
+if 'improve_input' not in st.session_state:
+    st.session_state['improve_input'] = ''
+if 'improve_result' not in st.session_state:
+    st.session_state['improve_result'] = ''
+if 'improve_explanation' not in st.session_state:
+    st.session_state['improve_explanation'] = ''
+if 'improve_audio' not in st.session_state:
+    st.session_state['improve_audio'] = ''
+if 'language' not in st.session_state:
+    st.session_state['language'] = 'English'
 
 ### FUNCTIONS ###
 
@@ -44,35 +61,43 @@ def get_openai_client():
 
 
 def translate(prompt):
-    openai_client = get_openai_client()
-    res = openai_client.chat.completions.create(
-        model=OPENAI_TEXT_MODEL,
-        temperature=0,
-        messages=[
-            {
-                "role": "system",
-                "content": 'Jesteś znawcą języka chińskiego. Przetłumacz tekst na język chiński, zachowując styl wypowiedzi. Dbaj o poprawność i naturalność tłumaczenia. Wygeneruj tylko treść przetłumaczonego zdania.',
-            },
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return res.choices[0].message.content
+    try:
+        openai_client = get_openai_client()
+        res = openai_client.chat.completions.create(
+            model=OPENAI_TEXT_MODEL,
+            temperature=0,
+            messages=[
+                {
+                    "role": "system",
+                    "content": 'Jesteś znawcą języka chińskiego...',
+                },
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return res.choices[0].message.content
+    except Exception as e:
+        st.error(f"Translation error: {str(e)}")
+        return None
 
 
 def improve(prompt):
-    openai_client = get_openai_client()
-    res = openai_client.chat.completions.create(
-        model=OPENAI_TEXT_MODEL,
-        temperature=0,
-        messages=[
-            {
-                "role": "system",
-                "content": 'Jesteś znawcą języka chińskiego. Popraw tekst, aby nie było w nim błędów i brzmiał naturalnie. Wygeneruj tylko poprawiony tekst.',
-            },
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return res.choices[0].message.content
+    try:
+        openai_client = get_openai_client()
+        res = openai_client.chat.completions.create(
+            model=OPENAI_TEXT_MODEL,
+            temperature=0,
+            messages=[
+                {
+                    "role": "system",
+                    "content": 'Jesteś znawcą języka chińskiego. Popraw tekst, aby nie było w nim błędów i brzmiał naturalnie. Wygeneruj tylko poprawiony tekst.',
+                },
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return res.choices[0].message.content
+    except Exception as e:
+        st.error(f"Improve error: {str(e)}")
+        return None
 
 
 def explain_improve(prompt, user_input):
@@ -214,16 +239,20 @@ def language_changed():
 ### CALLBACK FUNCTIONS ###
 
 def generate_audio_trans_callback():
-    st.session_state['translation_audio'] = translation_audio(st.session_state['translation_result'])
+    with st.spinner('Generating audio...'):
+        st.session_state['translation_audio'] = translation_audio(st.session_state['translation_result'])
 
 def generate_audio_imp_callback():
-    st.session_state['improve_audio'] = improve_audio(st.session_state['improve_result'])
+    with st.spinner('Generating audio...'):
+        st.session_state['improve_audio'] = improve_audio(st.session_state['improve_result'])
 
 def generate_translation_explanation_callback():
-    st.session_state['translation_explanation'] = explain_translation(st.session_state['translation_result'])
+    with st.spinner('Explaining...'):
+        st.session_state['translation_explanation'] = explain_translation(st.session_state['translation_result'])
 
 def generate_improve_explanation_callback():
-    st.session_state['improve_explanation'] = explain_improve(st.session_state['improve_result'], st.session_state['improve_input'])
+    with st.spinner('Explaining...'):
+        st.session_state['improve_explanation'] = explain_improve(st.session_state['improve_result'], st.session_state['improve_input'])
 
 ### MAIN ###
 
@@ -249,6 +278,16 @@ add_tab, search_tab = st.tabs([translator, history])
 
 with add_tab:
 
+    if st.session_state.get('translation_result') and \
+       st.session_state['translation_result'] != st.session_state['last_saved_translation']:
+        add_to_database(QDRANT_TRANSLATIONS_COLLECTION, st.session_state['translation_result'])
+        st.session_state['last_saved_translation'] = st.session_state['translation_result']
+
+    if st.session_state.get('improve_result') and \
+       st.session_state['improve_result'] != st.session_state['last_saved_improve']:
+        add_to_database(QDRANT_IMPROVE_COLLECTION, st.session_state['improve_result'])
+        st.session_state['last_saved_improve'] = st.session_state['improve_result']
+
     # ENGLISH VERSION #
 
     # Translate
@@ -261,7 +300,8 @@ with add_tab:
 
         if st.session_state['translation_input']:
             st.markdown('#### Translation:')
-            st.session_state['translation_result'] = translate(st.session_state['translation_input'])
+            with st.spinner('Translating...'):
+                st.session_state['translation_result'] = translate(st.session_state['translation_input'])
             st.write(st.session_state['translation_result'])
 
             st.button('Explain', on_click=generate_translation_explanation_callback, key='b')
@@ -279,7 +319,8 @@ with add_tab:
 
         if st.session_state['improve_input']:
             st.markdown('#### Improved version:')
-            st.session_state['improve_result'] = improve(st.session_state['improve_input'])
+            with st.spinner('Improving...'):
+                st.session_state['improve_result'] = improve(st.session_state['improve_input'])
             st.write(st.session_state['improve_result'])
 
             st.button('Explain', on_click=generate_improve_explanation_callback, key='c')
@@ -301,11 +342,9 @@ with add_tab:
 
         if st.session_state['translation_input']:
             st.markdown('#### Tłumaczenie:')
-            st.session_state['translation_result'] = translate(st.session_state['translation_input'])
+            with st.spinner('Translating...'):
+                st.session_state['translation_result'] = translate(st.session_state['translation_input'])
             st.write(st.session_state['translation_result'])
-            if st.session_state['translation_result'] != st.session_state['last_saved_translation']:
-                add_to_database(QDRANT_TRANSLATIONS_COLLECTION, st.session_state['translation_result'])
-                st.session_state['last_saved_translation'] = st.session_state['translation_result']
 
             st.button('Wytłumacz', on_click=generate_translation_explanation_callback, key='b')
             if st.session_state.get('translation_explanation'):
@@ -322,11 +361,9 @@ with add_tab:
 
         if st.session_state['improve_input']:
             st.markdown('#### Poprawiona wersja:')
-            st.session_state['improve_result'] = improve(st.session_state['improve_input'])
+            with st.spinner('Improving...'):
+                st.session_state['improve_result'] = improve(st.session_state['improve_input'])
             st.write(st.session_state['improve_result'])
-            if st.session_state['improve_result'] != st.session_state['last_saved_improve']:
-                add_to_database(QDRANT_IMPROVE_COLLECTION, st.session_state['improve_result'])
-                st.session_state['last_saved_improve'] = st.session_state['improve_result']
 
             st.button('Wytłumacz', on_click=generate_improve_explanation_callback, key='c')
             if st.session_state.get('improve_explanation'):
@@ -347,7 +384,8 @@ with add_tab:
 
         if st.session_state['translation_input']:
             st.markdown('#### Traducción:')
-            st.session_state['translation_result'] = translate(st.session_state['translation_input'])
+            with st.spinner('Translating...'):
+                st.session_state['translation_result'] = translate(st.session_state['translation_input'])
             st.write(st.session_state['translation_result'])
 
             st.button('Explicar', on_click=generate_translation_explanation_callback, key='b')
@@ -365,7 +403,8 @@ with add_tab:
 
         if st.session_state['improve_input']:
             st.markdown('#### Versión corregida:')
-            st.session_state['improve_result'] = improve(st.session_state['improve_input'])
+            with st.spinner('Improving...'):
+                st.session_state['improve_result'] = improve(st.session_state['improve_input'])
             st.write(st.session_state['improve_result'])
 
             st.button('Explicar', on_click=generate_improve_explanation_callback, key='c')
@@ -388,7 +427,8 @@ with add_tab:
 
         if st.session_state['improve_input']:
             st.markdown('#### 修改后的版本：')
-            st.session_state['improve_result'] = improve(st.session_state['improve_input'])
+            with st.spinner('Improving...'):
+                st.session_state['improve_result'] = improve(st.session_state['improve_input'])
             st.write(st.session_state['improve_result'])
 
             st.button('解释', on_click=generate_improve_explanation_callback, key='c')
