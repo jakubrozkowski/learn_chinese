@@ -204,7 +204,7 @@ def list_notes_from_db(collection_name, query=None):
         return result
 
     else:
-        notes = qdrant_client.search_points(
+        notes = qdrant_client.search(
             collection_name=collection_name,
             query_vector=get_embedding(text=query),
             limit=3,

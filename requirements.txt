@@ -1,4 +1,4 @@
-openai
-python-dotenv
-qdrant-client
-streamlit
+streamlit==1.39.0
+openai==1.54.4
+python-dotenv==1.0.1
+qdrant-client==1.12.1
