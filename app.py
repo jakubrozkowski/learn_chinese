@@ -1,7 +1,6 @@
 import streamlit as st
 from openai import OpenAI
 from dotenv import dotenv_values
-from audiorecorder import audiorecorder
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct
 
