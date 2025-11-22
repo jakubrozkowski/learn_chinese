@@ -69,7 +69,7 @@ def translate(prompt):
             messages=[
                 {
                     "role": "system",
-                    "content": 'Jesteś znawcą języka chińskiego...',
+                    "content": 'Jesteś znawcą języka chińskiego. Przetłumacz tekst na język chiński, zachowując styl wypowiedzi. Dbaj o poprawność i naturalność tłumaczenia. Wygeneruj tylko treść przetłuumaczonego zdania.',
                 },
                 {"role": "user", "content": prompt},
             ],
