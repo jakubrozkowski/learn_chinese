@@ -63,7 +63,7 @@ streamlit run app.py
 
 ## Connect
 
-Built by Jakub Rozkowski | [LinkedIn](www.linkedin.com/in/jakubrozkowski) | [GitHub](https://github.com/jakubrozkowski)
+Built by Jakub Rozkowski | [LinkedIn](https://www.linkedin.com/in/jakubrozkowski/) | [GitHub](https://github.com/jakubrozkowski)
 
 Part of my journey learning AI/ML while studying Chinese at Jagiellonian University.
 
